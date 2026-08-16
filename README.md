@@ -1,36 +1,40 @@
 # nodejs-app
 
-# // ===============/ NPM INSTALL /===============//
+## ===== NPM INSTALL ====
 
-// npm init -y
+## ---------------------------
 
-### Ініціалізуйте npm: З’явиться файл package.json із базовою інформацією про проєкт.
+### // npm init -y
 
-// npm install -D nodemon
+Ініціалізуйте npm: З’явиться файл package.json із базовою інформацією про проєкт.
 
-### пакет nodemon автоматично перезапускає застосунок після змін у файлах.
+### // npm install -D nodemon
 
-// npm init @eslint/config@latest
+пакет nodemon автоматично перезапускає застосунок після змін у файлах.
 
-### Лінтинг коду, дозволяє задати єдиний стиль написання коду
+### // npm init @eslint/config@latest
 
-// npm install express
+Лінтинг коду, дозволяє задати єдиний стиль написання коду
 
-### мінімалістичний веб-фреймворк для Node.js
+### // npm install express
 
-// npm install cors
+мінімалістичний веб-фреймворк для Node.js
 
-### Cross-Origin Resource Sharing — механізм безпеки, який дозволяє браузеру робити запити з одного домену до іншого
+### // npm install cors
 
-// npm install pino-http pino-pretty
+Cross-Origin Resource Sharing — механізм безпеки, який дозволяє браузеру робити запити з одного домену до іншого
 
-### Логування запитів (логер pino-http), вхідні/вихідні запити, час обробки
+### // npm install pino-http pino-pretty
 
-// npm install dotenv
+Логування запитів (логер pino-http), вхідні/вихідні запити, час обробки
 
-### зчитування змінних оточення
+### // npm install dotenv
 
-# // ===============/ npm init @eslint/config@latest /===============//
+зчитування змінних оточення
+
+## ---------------------------
+
+## // npm init @eslint/config@latest
 
 ```javascript
 @eslint/create-config: v2.0.0
@@ -46,7 +50,7 @@ eslint, @eslint/js, globals
 √ Which package manager do you want to use? · npm
 ```
 
-# // ===============/ Middleware обробки помилок /===============//
+## ===== Middleware обробки помилок ====
 
 Наша мідлвара для обробки помилок у поточному вигляді завжди відправляє користувачу деталі помилки (err.message). Це зручно під час розробки, але в продакшені так робити небезпечно — користувач може побачити внутрішню інформацію про застосунок.
 
@@ -86,7 +90,7 @@ app.use((err, req, res, next) => {
 
 При деплої продакшн-версії на Render.com змінна NODE_ENV автоматично матиме значення "production", навіть якщо ви її не задавали. Це гарантує, що у продакшені деталі помилок не потраплять у відповідь.
 
-# // ===============/ Вбудовані модулі Node.js /===============//
+## ==== Вбудовані модулі Node.js ====
 
 У Node.js є набір вбудованих модулів, які доступні відразу без встановлення додаткових пакетів.
 Наприклад:
@@ -102,7 +106,7 @@ https://nodejs.org/api/path.html?utm_source=chatgpt.com
 node:fs
 https://nodejs.org/api/fs.html?utm_source=chatgpt.com
 
-# // ===============/ 2 - Модуль path /===============//
+## ==== 2 - Модуль path ====
 
 // Об’єднує частини шляху у правильний формат для поточної ОС.
 // -------------------------------------------
@@ -115,7 +119,7 @@ import path from 'node:path';
 const somePath = path.join('some_folder', 'some_file.txt');
 ```
 
-# // ===============/ 3 - path.join(...paths) /===============//
+## ==== 3 - path.join(...paths) ====
 
 ```javascript
 // Можна вкладати виклики, щоб будувати складніші шляхи:
@@ -131,7 +135,7 @@ const pathToFile = path.join(pathToWorkDir, 'some_folder', 'some_file.txt');
 // macOS → /коренева*папка/some_folder/some_file.txt
 // Windows → C:\\коренева*папка\\some_folder\\some_file.txt
 
-# // ===============/ 4 - path.parse(path) /===============//
+## ==== 4 - path.parse(path) ====
 
 ```javascript
 // Розбирає рядок-шлях на складові частини:
@@ -165,7 +169,7 @@ name: 'file'
 //
 //
 
-# // ===============/ 5 - Модуль fs /===============//
+## ==== 5 - Модуль fs ====
 
 Одна з головних можливостей Node.js — робота з файлами та папками. Для цього використовується вбудований модуль fs.
 
@@ -175,9 +179,9 @@ _** асинхронні (через fs/promises), які працюють із 
 
 Синхронні методи іноді зручно застосувати, наприклад, щоб один раз зчитати конфігурацію на старті програми. У більшості випадків краще використовувати асинхронні версії.
 
-# // ===========/ Читання файлу - fs.readFileSync(path, options) /===========//
+## ==== Читання файлу - fs.readFileSync(path, options) ====
 
-# // ------------/ fs.readFileSync(path, options)
+### // ------ fs.readFileSync(path, options)
 
 — синхронне читання вмісту файла. Приймає шлях до файлу та, за потреби, кодування ("utf8", "ascii" тощо). Якщо кодування не вказано, повертає Buffer, якщо вказано — звичайний рядок.
 
@@ -193,7 +197,7 @@ const data = fs.readFileSync('file.txt', 'utf8');
 console.log('Вміст файлу:', data); // "Hello"
 ```
 
-# // ------------/ fs.readFile(path, options)
+### // ------ fs.readFile(path, options)
 
 — асинхронне читання вмісту файла. Приймає шлях і опції. Повертає Promise, який у разі успіху містить або Buffer, або рядок (залежно від того, чи вказано кодування).
 
@@ -214,27 +218,30 @@ console.log('Вміст файлу:', data); // "Hello"
 
 <!-- --------------------------------------------------- -->
 
-# // =======/ Запис у файл - fs.writeFileSync(path, data, options) /========//
+## ==== Запис у файл - fs.writeFileSync(path, data, options) ====
 
-# // ------------/ fs.writeFileSync(path, data, options)
+### // ------ fs.writeFileSync(path, data, options)
 
 — синхронний запис у файл. Якщо файл існує — перезапише його, якщо ні — створить новий.
 
 ```javascript
-import fs from "node:fs";
-fs.writeFileSync("output.txt", "Привіт з Node.js!", "utf8");
-
-# // ------------/ fs.writeFile(path, data, options)
-— асинхронний запис у файл. Повертає Promise, що виконується після завершення операції.
-
-import fs from "node:fs/promises";
-await fs.writeFile("output.txt", "Привіт з Node.js!", "utf8");
-console.log("Дані успішно записані у файл.");
+import fs from 'node:fs';
+fs.writeFileSync('output.txt', 'Привіт з Node.js!', 'utf8');
 ```
 
-# // ===========/ Додавання у файл - fs.appendFile(path, data, options) /==========//
+### // ------ fs.writeFile(path, data, options)
 
-# // ------------/ fs.appendFile(path, data, options)
+— асинхронний запис у файл. Повертає Promise, що виконується після завершення операції.
+
+```javascript
+import fs from 'node:fs/promises';
+await fs.writeFile('output.txt', 'Привіт з Node.js!', 'utf8');
+console.log('Дані успішно записані у файл.');
+```
+
+## ==== Додавання у файл - fs.appendFile(path, data, options) ====
+
+### // ------ fs.appendFile(path, data, options)
 
 — асинхронне додавання у файл. Дописує дані в кінець файлу.
 
@@ -244,9 +251,9 @@ await fs.appendFile('output.txt', '\nЩе один рядок', 'utf8');
 console.log('Дані успішно додані у файл.');
 ```
 
-# // =======/ Перейменування / переміщення файлів - fs.rename(oldPath, newPath) /========//
+## ==== Перейменування / переміщення файлів - fs.rename(oldPath, newPath) ====
 
-# // ------------/ fs.rename(oldPath, newPath)
+### // ------ fs.rename(oldPath, newPath)
 
 — асинхронне перейменування або переміщення файлу. Повертає Promise.
 
@@ -256,9 +263,9 @@ await fs.rename('oldfile.txt', 'newfile.txt');
 console.log('Файл успішно перейменовано.');
 ```
 
-# // =========/ Видалення файлу - fs.unlink(path) /=========//
+## ==== Видалення файлу - fs.unlink(path) ====
 
-# // ------------/ fs.unlink(path)
+### // ------ fs.unlink(path)
 
 — асинхронне видалення файлу. Повертає Promise.
 
@@ -268,7 +275,7 @@ await fs.unlink('file.txt');
 console.log('Файл успішно видалено.');
 ```
 
-# // ===============/ Підсумок /===============//
+## ==== Підсумок ====
 
 path — для правильного формування шляхів у різних ОС.
 fs — для роботи з файлами та папками.
