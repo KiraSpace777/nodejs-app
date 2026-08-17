@@ -20,6 +20,7 @@ import 'dotenv/config';
 
 const app = express();
 const PORT = process.env.PORT ?? 3000; // Використовуємо значення з .env або дефолтний порт 3000
+// const PORT = Number(process.env.PORT) || 3000;
 
 // ===============================================
 // Middleware list
