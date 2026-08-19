@@ -32,6 +32,10 @@ Cross-Origin Resource Sharing — механізм безпеки, який до
 
 зчитування змінних оточення
 
+### // npm install mongoose
+
+Підключення до БД - MongoDB, використаємо бібліотеку Mongoose.
+
 ## ---------------------------
 
 ## // npm init @eslint/config@latest
