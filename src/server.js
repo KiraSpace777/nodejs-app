@@ -29,7 +29,15 @@ const PORT = process.env.PORT ?? 3030; // Використовуємо знач�
 
 // Глобальні middleware
 app.use(logger); // 1. Middleware, Логер pino, першим — бачить усі запити
-app.use(express.json()); // 2. Middleware для парсингу JSON
+
+// 2. Middleware з типізацією для стандартного парсингу JSON + парсингу за специфікацією JSON:API
+// ВАЖЛИВО: без тіла "req.body", без "Content-Type: application/json" і без "express.json()" у тебе завжди буде порожній "req.body".
+app.use(
+  express.json({
+    type: ['application/json', 'application/vnd.api+json'],
+    limit: '100kb', // максимум 100 кілобайт
+  }),
+);
 app.use(cors()); // 3. Middleware, дозвіл для запитів з інших доменів
 
 // Логування часу

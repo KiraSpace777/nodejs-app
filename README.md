@@ -36,6 +36,10 @@ Cross-Origin Resource Sharing — механізм безпеки, який до
 
 Підключення до БД - MongoDB, використаємо бібліотеку Mongoose.
 
+### // npm install http-errors
+
+пакет http-errors дозволяє створювати помилки з потрібним статусом і повідомленням.
+
 ## ---------------------------
 
 ## // npm init @eslint/config@latest
