@@ -1,15 +1,82 @@
 // src/controllers/studentsController.js
 // =====================================================
+// + celebrate // (8) Контролер із логікою пагінації для GET, всі студенти (getStudentsSchema)
 
 import { Student } from '../models/student.js';
-import createHttpError from 'http-errors';
-import mongoose from 'mongoose';
+// import createHttpError from 'http-errors';
+// import mongoose from 'mongoose';
 
+// -----------------------------------------------
 // Маршрут GET /students : отримати всіх студентів
 // -----------------------------------------------
+// export const getStudents = async (req, res) => {
+//   const students = await Student.find();
+//   res.status(200).json(students);
+// };
+// -----------------------------------------------
+// (8) ОНОВЛЕННЯ "Маршрут GET /students" : отримати всіх студентів
+// -----------------------------------------------
 export const getStudents = async (req, res) => {
-  const students = await Student.find();
-  res.status(200).json(students);
+  // (8-9) Отримуємо параметри пагінації і задаємо дефолтні значення
+  const {
+    page = 1,
+    perPage = 10,
+    gender,
+    minAvgMark,
+    search,
+    // Отримуємо значення параметрів сортування
+    // дефолтне сортування по _id Варіанти напрямків:
+    // 1, "asc" = "ascending" → сортування за зростанням (від меншого до більшого);
+    // 1, "desc", "descending" → сортування за спаданням (від більшого до меншого).
+    sortBy = '_id',
+    sortOrder = 'asc',
+  } = req.query;
+  const skip = (page - 1) * perPage;
+
+  // (8) Створюємо базовий запит до колекції
+  const studentsQuery = Student.find();
+
+  // (10) Пошук по частині імені (за допомогою $regex)
+  if (search) {
+    studentsQuery.where({
+      name: { $regex: search, $options: 'i' },
+    });
+  }
+
+  // (9) Будуємо фільтр
+  // (9.1) додає умову для фільтрації за статтю, якщо параметр переданий.
+  if (gender) {
+    studentsQuery.where('gender').equals(gender);
+  }
+  // (9.2) додає умову для фільтрації за середнім балом (беремо тільки тих, у кого avgMark ≥ minAvgMark).
+  if (minAvgMark) {
+    studentsQuery.where('avgMark').gte(minAvgMark);
+  }
+
+  // (8) Виконуємо одразу два запити паралельно:
+  // Promise.all([...]) — запускаємо підрахунок (countDocuments) і отримання списку студентів одночасно, щоб не робити два послідовних запити.
+  // .clone() — потрібен у Mongoose, щоб один і той самий запит можна було виконати двічі (для підрахунку і для вибірки).
+  const [totalItems, students] = await Promise.all([
+    studentsQuery.clone().countDocuments(),
+    studentsQuery
+      .skip(skip)
+      .limit(perPage)
+      // Додаємо сортування в ланцюжок методів квері
+      .sort({ [sortBy]: sortOrder }),
+  ]);
+
+  // (8) Обчислюємо загальну кількість «сторінок»
+  const totalPages = Math.ceil(totalItems / perPage);
+
+  res.status(200).json({
+    page,
+    perPage,
+    totalItems,
+    totalPages,
+    students,
+  });
+
+  // (9) У результаті ми отримуємо список студентів із врахуванням пагінації та фільтрів, а також додаткову інформацію: скільки всього студентів (totalItems) і скільки сторінок (totalPages).
 };
 
 // Маршрут GET /students/:studentId: отримати одного студента за id
@@ -22,9 +89,9 @@ export const getStudentById = async (req, res) => {
   // та throw new Error(), через пакет http-errors та функцію createHttpError () у файлі // src/controllers/studentsController.js
   // оновимо відповідно і файл "// src/middleware/errorHandler.js"
   // -------------------------------------------------
-  if (!student) {
-    throw createHttpError(404, 'Student not found');
-  }
+  // if (!student) {
+  //   throw createHttpError(404, 'Student not found');
+  // }
 
   res.status(200).json(student);
 };
@@ -45,9 +112,9 @@ export const deleteStudent = async (req, res) => {
     _id: studentId,
   });
 
-  if (!student) {
-    throw createHttpError(404, 'Student not found');
-  }
+  // if (!student) {
+  //   throw createHttpError(404, 'Student not found');
+  // }
 
   res.status(200).json(student);
 };
@@ -55,22 +122,6 @@ export const deleteStudent = async (req, res) => {
 // Роут PATCH запиту (оновлення)
 // ------------------------------------
 // У контролері беремо studentId з параметрів, req.body — дані для часткового оновлення. Якщо студента не знайдено — повертаємо 404. Якщо все добре — повертаємо 200 і оновлений документ.
-// ------------------------------------
-// export const updateStudent = async (req, res) => {
-//   const { studentId } = req.params;
-
-//   const student = await Student.findOneAndUpdate(
-//     { _id: studentId }, // Шукаємо по id
-//     req.body,
-//     { returnDocument: 'after' }, // повертаємо оновлений документ
-//   );
-
-//   if (!student) {
-//     throw createHttpError(404, 'Student not found');
-//   }
-
-//   res.status(200).json(student);
-// };
 // -------------------------------------------
 // оновлений код, для контролю довжини коду ИД
 // -------------------------------------------
@@ -79,12 +130,12 @@ export const updateStudent = async (req, res) => {
 
   // УМОВА 1: Перевіряємо, чи є ID валідним для MongoDB (має бути рівно 24 символи)
   // Якщо формат невалідний, ми перехоплюємо помилку ДО запиту в базу даних, щоб уникнути помилки 500
-  if (!mongoose.Types.ObjectId.isValid(studentId)) {
-    throw createHttpError(
-      404,
-      `The ID code (string length) is incorrect. The specified string length [${studentId.length}] is less than the database standard [24]`,
-    );
-  }
+  // if (!mongoose.Types.ObjectId.isValid(studentId)) {
+  //   throw createHttpError(
+  //     404,
+  //     `The ID code (string length) is incorrect. The specified string length [${studentId.length}] is less than the database standard [24]`,
+  //   );
+  // }
 
   // Якщо ID валідний за форматом, виконуємо оновлення в базі даних
   const student = await Student.findOneAndUpdate(
@@ -94,16 +145,75 @@ export const updateStudent = async (req, res) => {
   );
 
   // УМОВА 2: Якщо формат ID правильний, але такого студента взагалі немає в базі даних
-  if (!student) {
-    throw createHttpError(404, 'Student not found');
-  }
+  // if (!student) {
+  //   throw createHttpError(404, 'Student not found');
+  // }
 
   // Якщо все добре — повертаємо статус 200 та оновлені дані студента
   res.status(200).json(student);
 };
 
 // ======================= COMMENTS ==============================
-// -----------------------------------------------
+// ================================================
+// МОДУЛЬ 3 (8) ОНОВЛЕННЯ Маршрут GET /students : отримати всіх студентів
+// ================================================
+// Оновимо контролер getStudents, щоб він віддавав студентів частинами.
+// У відповіді ми віддаємо не тільки список студентів, але й корисну мета-інформацію:
+// на якій сторінці він зараз,
+// скільки студентів показано на сторінці,
+// скільки студентів є загалом,
+// скільки всього сторінок доступно.
+// ---------------------------------------
+// Розбір коду крок за кроком
+// ---------------------------------------
+//
+// ---------------------------------------
+// === 1. Обчислюємо skip
+// ---------------------------------------
+// const skip = (page - 1) * perPage;
+//
+// Це визначає, скільки записів потрібно пропустити перед тим, як відібрати дані для поточної сторінки:
+//
+// якщо page = 1 → пропускаємо 0 записів;
+// якщо page = 2 → пропускаємо perPage записів;
+// якщо page = 3 → пропускаємо 2 * perPage записів.
+// Таким чином ми зсуваємося на потрібну сторінку.
+//
+// ---------------------------------------
+// === 2. Створюємо базовий запит
+// ---------------------------------------
+// const studentsQuery = Student.find();
+// Тут ми ще не звертаємось до бази, а лише описуємо запит. Це дозволяє згодом «доповнювати» його іншими методами (skip, limit тощо).
+//
+// ---------------------------------------
+// === 3. Виконуємо запити паралельно
+// ---------------------------------------
+// const [totalItems, students] = await Promise.all([
+//   studentsQuery.clone().countDocuments(),
+//   studentsQuery.skip(skip).limit(perPage),
+// ]);
+// .countDocuments() — підраховує загальну кількість студентів у колекції.
+// .skip(skip).limit(perPage) — повертає тільки ту частину студентів, яка відповідає потрібній сторінці.
+// ---------------------------------------
+// Ми запускаємо обидва запити одночасно за допомогою Promise.all. Це економить час, бо замість того, щоб чекати спочатку на один, а потім на інший — вони виконуються паралельно.
+//
+// ---------------------------------------
+// === 4. Чому потрібен .clone()
+// ---------------------------------------
+// У Mongoose один і той самий запит не можна виконати двічі. Тому перед повторним використанням його потрібно «клонувати». У нашому випадку це потрібно, щоб один раз отримати кількість документів, а другий — самі документи.
+//
+// ---------------------------------------
+// === 5. Обчислюємо кількість сторінок
+// ---------------------------------------
+// const totalPages = Math.ceil(totalItems / perPage);
+// ---------------------------------------
+// Наприклад, якщо в колекції є 53 студенти, а на сторінку ми показуємо по 10, отримаємо:
+// Math.ceil(53 / 10) = 6
+// Тобто дані займають 6 сторінок.
+
+// ================================================
+// ПОПЕРЕДНІ МОДУЛІ 1-2
+// ================================================
 // Створюємо контролери
 // Створіть папку src/controllers, а в ній файл studentsController.js. У цей файл винесемо контролери, які зараз знаходяться у файлі studentsRoutes.js
 // -----------------------------------------------

@@ -1,8 +1,16 @@
 // src/routes/studentsRoutes.js
 // ------------------------------------
 // Роутер для студентів
+//
+// + celebrate // підключимо схему "createStudentSchema" з "src/validations/studentsValidation.js" (Middleware для валідації на сервері введених користувачем даних) у маршруті POST /students, щоб валідація виконувалась автоматично до контролера
+// + celebrate // підключимо middleware errors() від celebrate
+// + celebrate // (6) Валідація ідентифікатора objectIdValidator (string, hex, 24 symbols = 12 байт у двійковому представленні)
+// + celebrate // (7) Валідація для PATCH (updateStudentSchema)
+// + celebrate // (8) Валідація + пагінація для GET, всі студенти (getStudentsSchema)
 
 import { Router } from 'express';
+import { celebrate } from 'celebrate'; // підключення celebrate (middleware валідації для Express)
+
 import {
   getStudents,
   getStudentById,
@@ -11,16 +19,163 @@ import {
   updateStudent,
 } from '../controllers/studentsController.js';
 
+import {
+  createStudentSchema,
+  studentIdParamSchema,
+  updateStudentSchema,
+  getStudentsSchema,
+} from '../validations/studentsValidation.js'; // підключення celebrate (middleware валідації для Express)
+
 const router = Router();
 
-router.get('/students', getStudents);
-router.get('/students/:studentId', getStudentById);
-router.post('/students', createStudent);
-router.delete('/students/:studentId', deleteStudent);
-router.patch('/students/:studentId', updateStudent);
+// router.get('/students', getStudents);
+// (8)-studentsValidation.js, підключення celebrate (middleware валідація)
+router.get('/students', celebrate(getStudentsSchema), getStudents);
+// router.get('/students/:studentId', getStudentById);
+// (6)-studentsValidation.js, підключення celebrate (middleware валідація)
+router.get(
+  '/students/:studentId',
+  celebrate(studentIdParamSchema),
+  getStudentById,
+);
+// router.post('/students', createStudent);
+// (1-5)-studentsValidation.js, підключення celebrate (middleware валідація)
+router.post('/students', celebrate(createStudentSchema), createStudent);
+// router.delete('/students/:studentId', deleteStudent);
+// (6)-studentsValidation.js, підключення celebrate (middleware валідація)
+router.delete(
+  '/students/:studentId',
+  celebrate(studentIdParamSchema),
+  deleteStudent,
+);
+// router.patch('/students/:studentId', updateStudent);
+// (7)-studentsValidation.js, підключення celebrate (middleware валідація)
+router.patch(
+  '/students/:studentId',
+  celebrate(updateStudentSchema),
+  updateStudent,
+);
 
 export default router;
 
+// =========================================================================
+// ======== Модуль 3 (підключення celebrate) =======
+// -------------------------------------------------------------------------
+// celebrate — це middleware для Express, який обгортає Joi та спрощує валідацію в маршрутах. Він дозволяє перевіряти дані у різних частинах запиту: тіло (body), параметри (params), рядок запиту (query), заголовки (headers), кукі (cookies) тощо.
+//
+// Ви описуєте схему валідації (Joi schema) і вказуєте, до якої частини запиту її застосувати.
+// celebrate виконує цю валідацію до контролера.
+// Якщо дані валідні — запит переходить далі у контролер.
+// Якщо ні — автоматично повертається помилка 400 Bad Request з поясненням, що саме не відповідає правилам.
+//
+// Тепер підключимо схему "src/validations/studentsValidation.js"
+// у маршруті POST /students (// src/routes/studentsRoutes.js), щоб валідація виконувалась автоматично до контролера:
+//
+// // ------------------------------------
+// // src/routes/studentsRoutes.js
+// // ------------------------------------
+// import { Router } from 'express';
+// import { celebrate, Segments } from 'celebrate';
+// import { createStudent } from '../controllers/studentsController.js';
+// import { createStudentSchema } from '../validations/studentsValidation.js';
+
+// const router = Router();
+// router.post('/students', celebrate(createStudentSchema), createStudent);
+// export default router;
+// // ------------------------------------
+//
+// У цьому прикладі celebrate перевіряє тіло запиту за схемою createStudentSchema. Якщо дані некоректні — клієнт одразу отримає 400 Bad Request. Якщо все гаразд — виконається контролер createStudent.
+//
+// -------------------------------------------------------------------------
+// Валідація ідентифікатора
+// -------------------------------------------------------------------------
+// У MongoDB кожен документ має унікальний ідентифікатор у полі _id. Це ObjectId, який має строго визначений формат:
+
+// завжди рядок у шістнадцятковому (hex) вигляді;
+// довжина — рівно 24 символи (12 байт у двійковому представленні);
+// автоматично генерується MongoDB при створенні документа.
+
+// ------------------------------------
+// Функція objectIdValidator
+// ------------------------------------
+// Створимо кастомний валідатор для Joi, який перевірятиме значення на валідність ObjectId.
+// // ------------------------------------
+// // src/validations/studentsValidation.js
+// // ------------------------------------
+// import { Joi, Segments } from 'celebrate';
+// import { isValidObjectId } from 'mongoose';
+
+// // Кастомний валідатор для ObjectId
+// const objectIdValidator = (value, helpers) => {
+//   return !isValidObjectId(value) ? helpers.message('Invalid id format') : value;
+// };
+
+// // Схема для перевірки параметра studentId
+// export const studentIdParamSchema = {
+//   [Segments.PARAMS]: Joi.object({
+//     studentId: Joi.string().custom(objectIdValidator).required(),
+//   }),
+// };
+// ------------------------------------
+// isValidObjectId(value) — це утиліта з Mongoose, яка перевіряє, чи рядок відповідає формату MongoDB ObjectId.
+// Якщо isValidObjectId повертає false, ми викликаємо helpers.message('Invalid id format'), щоб створити помилку в Joi.
+// Якщо все гаразд, функція просто повертає значення далі.
+
+// Таким чином, ми отримуємо зрозумілу помилку для клієнта замість технічної MongoDB-помилки.
+// ------------------------------------
+// Використання у маршрутах
+// ------------------------------------
+// Додамо схему у маршрут /students/:studentId, щоб celebrate автоматично перевіряв параметр studentId:
+// // ------------------------------------
+// // src/routes/studentsRoutes.js
+// // ------------------------------------
+// import { Router } from 'express';
+// import { celebrate } from 'celebrate';
+
+// import { getStudentById, deleteStudent } from '../controllers/studentsController.js';
+// import { studentIdParamSchema } from '../validations/studentsValidation.js';
+
+// const router = Router();
+
+// router.get('/students/:studentId', celebrate(studentIdParamSchema), getStudentById);
+// router.delete('/students/:studentId', celebrate(studentIdParamSchema), deleteStudent);
+
+// export default router;
+// ------------------------------------
+// Ми використовуємо одну й ту саму схему для обох маршрутів:
+// GET /students/:studentId — отримання студента за id;
+// DELETE /students/:studentId — видалення студента за id.
+// Це дозволяє уникнути дублювання коду й зберігати валідацію в одному місці.
+
+// Тепер:
+// Якщо id валідний → виконується контролер.
+// Якщо id невалідний → celebrate одразу повертає 400 Bad Request з повідомленням "Invalid id format".
+
+// =========================================================================
+// ======== Код з попереднього модуля № 2 (до підключення celebrate) =======
+// -------------------------------------------------------------------------
+// // src/routes/studentsRoutes.js
+// // ------------------------------------
+// // Роутер для студентів
+
+// import { Router } from 'express';
+// import {
+//   getStudents,
+//   getStudentById,
+//   createStudent,
+//   deleteStudent,
+//   updateStudent,
+// } from '../controllers/studentsController.js';
+
+// const router = Router();
+
+// router.get('/students', getStudents);
+// router.get('/students/:studentId', getStudentById);
+// router.post('/students', createStudent);
+// router.delete('/students/:studentId', deleteStudent);
+// router.patch('/students/:studentId', updateStudent);
+
+// export default router;
 // ===============================================
 // Роутер для студентів
 // src/routes/studentsRoutes.js

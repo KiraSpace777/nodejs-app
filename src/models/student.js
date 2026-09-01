@@ -2,8 +2,7 @@
 // --------------------------------
 // Mongoose /  MongoDB
 
-import { Schema } from 'mongoose';
-import { model } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
 // Схема студента
 // ----------------------------------
@@ -37,6 +36,9 @@ const studentSchema = new Schema(
     versionKey: false,
   },
 );
+
+// Значення 1 означає сортування за зростанням, але для індексу напрямок не має особливого значення.
+studentSchema.index({ gender: 1, avgMark: 1 });
 
 // Модель студента
 // ----------------------------------
