@@ -10,18 +10,24 @@
 // npm install mongoose === бібліотека Mongoose, підключення до MongoDB (БД)
 // npm install http-errors === пакет http-errors дозволяє створювати помилки з потрібним статусом і повідомленням.
 // npm i celebrate === Бібліотека валідації: celebrate вже містить Joi (Joi — мова опису схем об’єктів і валідатор;;; celebrate — дозволяє інтегрувати Joi безпосередньо у маршрути Express.)
+// npm i bcrypt  === Бібліотека для безпечного хешування паролів, додає до паролю сіль (salt) — випадковий рядок
+// npm i cookie-parser === парсер для Cookies
 
 import express from 'express';
+import { errors } from 'celebrate';
 import 'dotenv/config';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
+
+import { connectMongoDB } from './db/connectMongoDB.js';
 
 // Імпортуємо middleware
-import { errors } from 'celebrate';
-import { connectMongoDB } from './db/connectMongoDB.js';
 import { logger } from './middleware/logger.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
+// Імпортуємо маршрути
+import authRoutes from './routes/authRoutes.js';
 import studentsRoutes from './routes/studentsRoutes.js';
 
 const app = express();
@@ -42,6 +48,7 @@ app.use(
   }),
 );
 app.use(cors()); // 3. Middleware, дозвіл для запитів з інших доменів
+app.use(cookieParser()); // (4.13) Cookies / Піключаємо парсер кук
 
 // Логування часу
 app.use((req, res, next) => {
@@ -51,6 +58,9 @@ app.use((req, res, next) => {
 
 // МАРШРУТИ
 // ===============================================
+
+// підключаємо групу маршрутів користувача (User), (4.5 - Реєстрація користувачів)
+app.use(authRoutes);
 
 // підключаємо групу маршрутів студента
 app.use(studentsRoutes);
@@ -73,19 +83,6 @@ await connectMongoDB();
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
-// ==========================================
-// Middleware для обробки помилок (middleware errors() від celebrate)
-// ==========================================
-// celebrate — це middleware для Express, який обгортає Joi та спрощує валідацію в маршрутах. Він дозволяє перевіряти дані у різних частинах запиту: тіло (body), параметри (params), рядок запиту (query), заголовки (headers), кукі (cookies) тощо
-
-// Ми вже бачили, що celebrate автоматично генерує помилки при невдалій валідації (наприклад, якщо studentId має неправильний формат). Але щоб ці помилки правильно відображалися у нашому додатку, потрібно підключити спеціальний middleware errors() від celebrate.
-//
-// Де саме підключати?
-//
-// Усі middleware виконуються у порядку, в якому вони оголошені.
-// Тому errors() має бути підключений до глобального errorHandler.
-// Це потрібно для того, щоб спочатку відловлювались помилки валідації celebrate, а вже потім — усі інші.
 
 // ==========================================
 // Далі виносимо логіку мидвар у нові файли структури і імпортуємо у даному файлі код

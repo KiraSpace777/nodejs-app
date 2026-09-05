@@ -7,9 +7,10 @@
 // + celebrate // (6) Валідація ідентифікатора objectIdValidator (string, hex, 24 symbols = 12 байт у двійковому представленні)
 // + celebrate // (7) Валідація для PATCH (updateStudentSchema)
 // + celebrate // (8) Валідація + пагінація для GET, всі студенти (getStudentsSchema)
+// (4.21) Middleware аутентифікації / Використання у маршрутах
 
 import { Router } from 'express';
-import { celebrate } from 'celebrate'; // підключення celebrate (middleware валідації для Express)
+import { celebrate } from 'celebrate';
 
 import {
   getStudents,
@@ -21,35 +22,45 @@ import {
 
 import {
   createStudentSchema,
+  getStudentsSchema,
   studentIdParamSchema,
   updateStudentSchema,
-  getStudentsSchema,
 } from '../validations/studentsValidation.js'; // підключення celebrate (middleware валідації для Express)
+
+// (4.21) Імпортуємо middleware аутентифікації
+import { authenticate } from '../middleware/authenticate.js';
 
 const router = Router();
 
+// (4.21) Додаємо middleware аутентифікації до всіх шляхів, що починаються з /students
+router.use('/students', authenticate);
+
 // router.get('/students', getStudents);
-// (8)-studentsValidation.js, підключення celebrate (middleware валідація)
+// studentsValidation.js, підключення celebrate (middleware валідація)
 router.get('/students', celebrate(getStudentsSchema), getStudents);
+
 // router.get('/students/:studentId', getStudentById);
-// (6)-studentsValidation.js, підключення celebrate (middleware валідація)
+// studentsValidation.js, підключення celebrate (middleware валідація)
 router.get(
   '/students/:studentId',
   celebrate(studentIdParamSchema),
   getStudentById,
 );
+
 // router.post('/students', createStudent);
-// (1-5)-studentsValidation.js, підключення celebrate (middleware валідація)
+// studentsValidation.js, підключення celebrate (middleware валідація)
 router.post('/students', celebrate(createStudentSchema), createStudent);
+
 // router.delete('/students/:studentId', deleteStudent);
-// (6)-studentsValidation.js, підключення celebrate (middleware валідація)
+// studentsValidation.js, підключення celebrate (middleware валідація)
 router.delete(
   '/students/:studentId',
   celebrate(studentIdParamSchema),
   deleteStudent,
 );
+
 // router.patch('/students/:studentId', updateStudent);
-// (7)-studentsValidation.js, підключення celebrate (middleware валідація)
+// studentsValidation.js, підключення celebrate (middleware валідація)
 router.patch(
   '/students/:studentId',
   celebrate(updateStudentSchema),
@@ -57,6 +68,12 @@ router.patch(
 );
 
 export default router;
+
+// ====================================
+// (4.21) Middleware аутентифікації / Використання у маршрутах
+// ------------------------------------
+// Кожен запит до приватних ресурсів проходить перевірку перед тим, як дійти до контролера (// src/middleware/authenticate.js). Тепер ми можемо скористатись нашим middleware authenticate в роутері для запитів до колекції студентів.
+// Коли ми приміняємо middleware таким чином router.use(path, middleware), вона будет примінятися до всіх роутів цього роутера. Тобто, вона відпрацює на всіх роутах, що починаються зі /students
 
 // =========================================================================
 // ======== Модуль 3 (підключення celebrate) =======
