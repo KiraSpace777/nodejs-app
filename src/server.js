@@ -16,6 +16,7 @@
 // npm i jsonwebtoken  === бібліотеку для роботи з токен JWT
 // npm install mailgun.js === бібліотекою mailgun: функціонал відправлення листів
 // npm i handlebars  === популярний шаблонізатор для JavaScript (для створення листа, з гарним форматуванням, замість шаблонного рядку)
+// npm i multer  === middleware multer для завантаження зображень (наприклад, аватарка)
 
 import express from 'express';
 import { errors } from 'celebrate';
@@ -33,6 +34,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 // Імпортуємо маршрути
 import authRoutes from './routes/authRoutes.js';
 import studentsRoutes from './routes/studentsRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT ?? 3030; // Використовуємо значення з .env або дефолтний порт для сервера 3030
@@ -69,6 +71,9 @@ app.use(authRoutes);
 // підключаємо групу маршрутів студента
 app.use(studentsRoutes);
 
+// Додаємо раути користувача
+app.use(userRoutes);
+
 // Middleware 404 — якщо маршрут не знайдено (після всіх маршрутів)
 app.use(notFoundHandler);
 
@@ -88,6 +93,25 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
+// ======================= (5.8.1) =====================
+// (5.8.1) Аватар користувача  / оновлюємо модель userSchema, додаємо необов’язкову властивість
+// ----------------------
+// src/models/user.js
+// ======================= (5.8.2) =====================
+// (5.8.2) Аватар користувача  / КОНТРОЛЛЕР / Маршрут "/users/me/avatar"
+// ----------------------
+// src/controllers/userController.js
+// ======================= (5.8.3) =====================
+// (5.8.3) Аватар користувача / РОУТЕР  / Маршрут " /users": Middleware authenticate
+// ----------------------
+// src/routes/userRoutes.js
+// ======================= (5.8.4) =====================
+// Аватар користувача  / додаємо нові раути userRoutes у server.js
+// ----------------------
+// src/server.js
+//
+// у файлі src/server.js імпортуємо нові раути та додаємо їх через app.use
+//
 // ==========================================
 // Взаємодія з базою даних "cloud.mongodb"
 // src/server.js

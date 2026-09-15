@@ -9,6 +9,12 @@ const userSchema = new Schema(
     username: { type: String, trim: true },
     email: { type: String, unique: true, required: true, trim: true },
     password: { type: String, required: true },
+    // (5.8.1) Аватар користувача / додаємо необов’язкову властивість
+    avatar: {
+      type: String,
+      required: false,
+      default: 'https://ac.goit.global/fullstack/react/default-avatar.jpg',
+    },
   },
   {
     timestamps: true,
@@ -31,6 +37,21 @@ userSchema.methods.toJSON = function () {
 };
 
 export const User = model('User', userSchema);
+
+// ======================= (5.8.1) =====================
+// (5.8.1) Аватар користувача  / оновлюємо модель userSchema, додаємо необов’язкову властивість
+// ----------------------
+// src/models/user.js
+//
+// Ми реалізуємо можливість користувачеві змінювати аватар. Тому до моделі користувача додаємо необов’язкову властивість avatar зі значенням за замовчуванням.
+//
+// =======================
+// ЩО ДАЛІ
+// ======================= (5.8.2) =====================
+// (5.8.2) Аватар користувача  / Маршрут
+// ----------------------
+// src/controllers/userController.js
+//
 
 // ======================= (4.1) =====================
 // Реєстрація користувачів
