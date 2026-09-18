@@ -74,11 +74,12 @@ app.use(studentsRoutes);
 // Додаємо раути користувача
 app.use(userRoutes);
 
+// Middleware errors() від celebrate - обробка помилок валідації в Express
+// (має стояти ПЕРЕД кастомними errorHandler та після маршрутів)
+app.use(errors());
+
 // Middleware 404 — якщо маршрут не знайдено (після всіх маршрутів)
 app.use(notFoundHandler);
-
-// Middleware errors() від celebrate - обробка помилок валідації в Express
-app.use(errors());
 
 // Middleware 500 (Error) — якщо під час запиту виникла помилка (останнє)
 app.use(errorHandler);
